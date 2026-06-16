@@ -1,0 +1,40 @@
+$date
+	Mon Jun 15 17:04:13 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module bit_reversal_tb $end
+$var integer 32 ! i [31:0] $end
+$scope module uut1 $end
+$var reg 3 " reversed_bits [2:0] $end
+$var integer 32 # i [31:0] $end
+$var integer 32 $ j [31:0] $end
+$upscope $end
+$scope module uut2 $end
+$var reg 1 % minus $end
+$var reg 3 & num [2:0] $end
+$var integer 32 ' i [31:0] $end
+$var integer 32 ( j [31:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+b1000 (
+b1000 '
+b100 &
+0%
+b11 $
+b1000 #
+b0 "
+bx !
+$end
+#10
+b1000 !
