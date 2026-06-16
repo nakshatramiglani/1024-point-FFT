@@ -1,6 +1,7 @@
 `define WIDTH 8
 `define SIZE 3
 `define DATA_WIDTH 8
+`define OUT_WIDTH 24
 
 module twiddle (
     output logic signed [15:0] twiddle_real [0:3],
@@ -51,13 +52,18 @@ module bit_reversal(
 endmodule
 
 module add_sub(
-    input [`DATA_WIDTH-1:0] in[`WIDTH-1:0],
-    output reg [`DATA_WIDTH-1:0] out[`WIDTH-1:0]
+    input [`DATA_WIDTH-1:0] in_real[`WIDTH-1:0],
+    input [`DATA_WIDTH-1:0] in_imag[`WIDTH-1:0],
+    output reg [`OUT_WIDTH-1:0] out[`WIDTH-1:0]
 );
+
     integer i, j;
     reg [`SIZE-1:0] num; 
-    reg [`DATA_WIDTH-1:0] inter1[`WIDTH-1:0];
-    reg [`DATA_WIDTH-1:0] inter2[`WIDTH-1:0];
+    reg [`DATA_WIDTH-1:0] inter1_real[`WIDTH-1:0];
+    reg [`DATA_WIDTH-1:0] inter1_imag[`WIDTH-1:0];
+    reg [`DATA_WIDTH-1:0] inter2_real[`WIDTH-1:0];
+    reg [`DATA_WIDTH-1:0] inter2_imag[`WIDTH-1:0];
+
     always @(*) begin
         for (i = 0; i < `SIZE; i = i + 1) begin
             num = 2**i;
@@ -80,5 +86,6 @@ module add_sub(
                 out[i] = inter1[i];
         end
     end
+    
 endmodule
 
