@@ -15,7 +15,7 @@ module bit_reversal_tb;
         $dumpfile("test.vcd");
         $dumpvars(0, bit_reversal_tb);
         $display("Test testbench");
-        A = '{3'b000, 3'b111, 3'b010, 3'b011, 3'b100, 3'b101, 3'b110, 3'b111};
+        A = '{3'd7, 3'd6, 3'd5, 3'd4, 3'd3, 3'd2, 3'd1, 3'd0};
         #10;
         $display("Bit reversal module");
         for (i = 0; i < 8; i = i + 1) begin
