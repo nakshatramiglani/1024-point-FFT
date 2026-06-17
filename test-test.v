@@ -33,7 +33,10 @@ module testbench_tb;
         end
         $display("Add-Sub");
         for (i = 0; i < 8; i = i + 1) begin
-            $display("%0d + 0j : %f + %f j", B[i], $itor($signed(out_real[i])) / 32768.0, $itor($signed(out_imag[i])) / 32768.0);
+            if ($itor($signed(out_imag[i])) < 0)
+                $display("%0d + 0j : %.4f - %.4f j", B[i], $itor($signed(out_real[i])) / 32768.0, -$itor($signed(out_imag[i])) / 32768.0);
+            else
+                $display("%0d + 0j : %.4f + %.4f j", B[i], $itor($signed(out_real[i])) / 32768.0, $itor($signed(out_imag[i])) / 32768.0);
         end
     end
     

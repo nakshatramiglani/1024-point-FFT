@@ -74,13 +74,13 @@ module add_sub(
             temp_real = (mul1_real * mul2_real) - (mul1_imag * mul2_imag);
             temp_imag = (mul1_real * mul2_imag) + (mul1_imag * mul2_real);
 
-            out_real = (temp_real + 40'sd16384) >>> 15;
-            out_imag = (temp_imag + 40'sd16384) >>> 15;
+            out_real = temp_real >>> 15;
+            out_imag = temp_imag >>> 15;
 
         end
 
     endtask
-    
+
     always @(*) begin
         for (i = 0; i < `SIZE; i = i + 1) begin
             num = 2**i;
