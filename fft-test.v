@@ -26,6 +26,7 @@
         integer i;
 
         integer file_in;
+        integer file_out;
         integer scan_result;
 
         real start_time;
@@ -55,6 +56,13 @@
                 $display("Error: Input file not found.");
                 $finish;
             end
+            file_out = $fopen("results/fft/output.json", "w");
+            if (file_out == 0) begin
+                $display("Error: Could not open output file.");
+                $finish;
+            end
+
+            $fdisplay(file_out, "{");
 
             for (i = 0; i < `WIDTH; i = i + 1) begin
                 scan_result = $fscanf(file_in, "%d %d", A_real[i], A_imag[i]);
@@ -70,22 +78,25 @@
             #10;
             end_time = $realtime;
 
-            $display("Add-Sub");
             for (i = 0; i < `WIDTH; i = i + 1) begin
 
                 display_real = $signed(out_real[i]);
                 display_imag = $signed(out_imag[i]);
 
-                if ($signed(A_imag[i]) < 0 && display_imag < 0)
-                    $display("%0d - %0dj : %.4f - %.4f j", $signed(A_real[i]), -$signed(A_imag[i]), display_real / 32768.0, -display_imag / 32768.0);
-                else if ($signed(A_imag[i]) < 0 && display_imag >= 0)
-                    $display("%0d - %0dj : %.4f + %.4f j", $signed(A_real[i]), -$signed(A_imag[i]), display_real / 32768.0, display_imag / 32768.0);
-                else if ($signed(A_imag[i]) >= 0 && display_imag < 0)
-                    $display("%0d + %0dj : %.4f - %.4f j", $signed(A_real[i]), $signed(A_imag[i]), display_real / 32768.0, -display_imag / 32768.0);
-                else
-                    $display("%0d + %0dj : %.4f + %.4f j", $signed(A_real[i]), $signed(A_imag[i]), display_real / 32768.0, display_imag / 32768.0);
+                if (i == `WIDTH - 1) begin
+                    $fdisplay(file_out, "  \"out_%0d\": [\n    %f,\n    %f\n  ]", 
+                          i, display_real / 32768.0, display_imag / 32768.0);
+                end 
+                else begin
+                    $fdisplay(file_out, "  \"out_%0d\": [\n    %f,\n    %f\n  ],", 
+                          i, display_real / 32768.0, display_imag / 32768.0);
+                end
                     
             end
+
+            $fdisplay(file_out, "}");
+            $fclose(file_out);
+            $display("Simulation complete.");
             $display("Time: %0f ns", (end_time - start_time));
         end
         
