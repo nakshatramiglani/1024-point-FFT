@@ -4,7 +4,7 @@ module twiddle_factors #(
 )(
     input logic clk,
     input logic rst_n,
-
+    input logic done, 
     input logic [$clog2(WIDTH)-2:0] angle_idx,
 
     output logic signed [TWIDDLE_WIDTH-1:0] twiddle_real,
@@ -29,13 +29,13 @@ module twiddle_factors #(
     logic signed [TWIDDLE_WIDTH-1:0] raw_i;
     logic swap_flag;
 
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk and posedge done) begin
         raw_r <= rom_real[angle_idx[SIZE-3:0]];
         raw_i <= rom_imag[angle_idx[SIZE-3:0]];
         swap_flag <= angle_idx[SIZE-2];
     end
 
-    always_ff @(posedge clk or negedge rst_n) begin
+    always_ff @((posedge clk or negedge rst_n) and posedge done) begin
         if (!rst_n) begin
             twiddle_real <= '0;
             twiddle_imag <= '0;
