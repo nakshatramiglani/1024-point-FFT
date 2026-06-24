@@ -6,10 +6,10 @@ module add_sub #(
     input  signed [DATA_WIDTH-1:0] in1_imag,
     input  signed [DATA_WIDTH-1:0] in2_real,
     input  signed [DATA_WIDTH-1:0] in2_imag,
-    output reg signed [DATA_WIDTH-1:0] out1_real,
-    output reg signed [DATA_WIDTH-1:0] out1_imag,
-    output reg signed [DATA_WIDTH-1:0] out2_real,
-    output reg signed [DATA_WIDTH-1:0] out2_imag
+    output reg signed [DATA_WIDTH:0] out1_real,
+    output reg signed [DATA_WIDTH:0] out1_imag,
+    output reg signed [DATA_WIDTH:0] out2_real,
+    output reg signed [DATA_WIDTH:0] out2_imag
 );
 
     reg signed [DATA_WIDTH-1:0] a_real;
