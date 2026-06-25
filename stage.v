@@ -7,7 +7,7 @@ module stage #(
     parameter WIDTH = 16,
     parameter IN_WIDTH = 16,
     parameter TWIDDLE_WIDTH = 16,
-    parameter STAGE = 1 //stages start from 1
+    parameter STAGE = 1 // stages start from 1
 )(
     input logic clk,
     input logic rst_n,
@@ -21,10 +21,14 @@ module stage #(
 
     localparam SIZE       = $clog2(WIDTH);
     localparam DATA_WIDTH = IN_WIDTH;
-    localparam DELAY = 1 << (SIZE - STAGE);
+    localparam DELAY      = 1 << (SIZE - STAGE);
 
     wire signed [DATA_WIDTH:0] delay_in_real;
     wire signed [DATA_WIDTH:0] delay_in_imag;
+
+    // Internal wires for raw buffer output before masking
+    wire signed [DATA_WIDTH:0] raw_delayed_real;
+    wire signed [DATA_WIDTH:0] raw_delayed_imag;
 
     wire signed [DATA_WIDTH:0] delayed_real;
     wire signed [DATA_WIDTH:0] delayed_imag;
@@ -55,6 +59,24 @@ module stage #(
     assign switch = sample_count[SIZE - STAGE];
     assign angle_idx = sample_count << (STAGE - 1);
 
+    // Initialization counter to track when buffer garbage is fully flushed
+    logic [$clog2(DELAY+1):0] init_cnt;
+    logic buff_out_valid;
+
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            init_cnt <= '0;
+            buff_out_valid <= 1'b0;
+        end else begin
+            if (init_cnt < DELAY) begin
+                init_cnt <= init_cnt + 1;
+                buff_out_valid <= 1'b0;
+            end else begin
+                buff_out_valid <= 1'b1;
+            end
+        end
+    end
+
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             switch_d1 <= 0;
@@ -70,8 +92,9 @@ module stage #(
         end
     end
 
-    assign delay_in_real = switch ? multiplied_real : in_real_ext;
-    assign delay_in_imag = switch ? multiplied_imag : in_imag_ext;
+    // Masked assignments: Feed zeros into the buffer when in reset to prevent X propagation
+    assign delay_in_real = (!rst_n) ? '0 : (switch_d4 ? multiplied_real[DATA_WIDTH:0] : in_real_ext);
+    assign delay_in_imag = (!rst_n) ? '0 : (switch_d4 ? multiplied_imag[DATA_WIDTH:0] : in_imag_ext);
 
     logic signed [DATA_WIDTH:0] added_real_d1, added_real_d2;
     logic signed [DATA_WIDTH:0] added_imag_d1, added_imag_d2;
@@ -91,17 +114,27 @@ module stage #(
         end
     end
 
-    assign out_real = switch_d4 ? added_real_d2 : delayed_real;
-    assign out_imag = switch_d4 ? added_imag_d2 : delayed_imag;
+    // Mask buffer output with valid signal (strips X values out)
+    assign delayed_real = buff_out_valid ? raw_delayed_real : '0;
+    assign delayed_imag = buff_out_valid ? raw_delayed_imag : '0;
 
+    // Mask final output on reset
+    // Mask final output on reset with explicit 16-bit (15-bit extension) hardcoding
+    assign out_real = (!rst_n) ? 32'sd0 : 
+                      (switch_d4 ? {{15{added_real_d2[16]}}, added_real_d2} : 
+                                   {{15{delayed_real[16]}}, delayed_real});
+                                   
+    assign out_imag = (!rst_n) ? 32'sd0 : 
+                      (switch_d4 ? {{15{added_imag_d2[16]}}, added_imag_d2} : 
+                                   {{15{delayed_imag[16]}}, delayed_imag});
     buffer #(.DEPTH(DELAY), .DATA_WIDTH(DATA_WIDTH + 1))
         buff_inst(
             .clk(clk),
             .nrst(rst_n),
             .in_real(delay_in_real),
             .in_imag(delay_in_imag),
-            .delayed_real(delayed_real),
-            .delayed_imag(delayed_imag)
+            .delayed_real(raw_delayed_real),
+            .delayed_imag(raw_delayed_imag)
     );
 
     add_sub #(.DATA_WIDTH(DATA_WIDTH + 1))
@@ -116,6 +149,7 @@ module stage #(
             .out2_real(raw_sub_real),
             .out2_imag(raw_sub_imag)
     );
+
     twiddle_factors #(
         .WIDTH(WIDTH),
         .TWIDDLE_WIDTH(TWIDDLE_WIDTH))
@@ -128,9 +162,8 @@ module stage #(
             .twiddle_imag(twiddle_imag)
     );
 
-//multiply twiddle factor with even input
+    // multiply twiddle factor with even input
     complex_multiply #(
-        //.FFT_WIDTH(DATA_WIDTH + 1),
         .TWIDDLE_WIDTH(TWIDDLE_WIDTH))
         cmplx_mult_inst(
             .clk(clk),
