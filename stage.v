@@ -33,6 +33,8 @@ module stage #(
     wire signed [TWIDDLE_WIDTH - 1:0] twiddle_imag;
 
     logic [SIZE - 2:0] angle_idx;
+    logic done;
+    assign done = 1'b1;
 
     wire signed [DATA_WIDTH:0] in_real_ext = {in_real[DATA_WIDTH-1], in_real};
     wire signed [DATA_WIDTH:0] in_imag_ext = {in_imag[DATA_WIDTH-1], in_imag};
@@ -92,7 +94,6 @@ module stage #(
     assign out_real = switch_d4 ? added_real_d2 : delayed_real;
     assign out_imag = switch_d4 ? added_imag_d2 : delayed_imag;
 
-//generating all buffers
     buffer #(.DEPTH(DELAY), .DATA_WIDTH(DATA_WIDTH + 1))
         buff_inst(
             .clk(clk),
@@ -103,7 +104,6 @@ module stage #(
             .delayed_imag(delayed_imag)
     );
 
-//add and subtract the even and odd inputs
     add_sub #(.DATA_WIDTH(DATA_WIDTH + 1))
         addsub_inst(
             .clk(clk),
@@ -116,8 +116,6 @@ module stage #(
             .out2_real(raw_sub_real),
             .out2_imag(raw_sub_imag)
     );
-
-//generate twiddle factors
     twiddle_factors #(
         .WIDTH(WIDTH),
         .TWIDDLE_WIDTH(TWIDDLE_WIDTH))
@@ -125,6 +123,7 @@ module stage #(
             .clk(clk),
             .rst_n(rst_n),
             .angle_idx(angle_idx),
+            .done(done),
             .twiddle_real(twiddle_real),
             .twiddle_imag(twiddle_imag)
     );

@@ -17,10 +17,9 @@ module complex_multiply #(
 
     localparam PROD_WIDTH = FFT_WIDTH + TWIDDLE_WIDTH;
     localparam SUM_WIDTH  = PROD_WIDTH + 1;
-
+    assign done = 1'b0;
     logic signed [PROD_WIDTH-1:0] prr, pii, pri, pir;
     logic signed [SUM_WIDTH-1:0] real_full, imag_full;
-
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             prr <= '0;

@@ -4,7 +4,7 @@ module twiddle_factors #(
 )(
     input logic clk,
     input logic rst_n,
-
+    input logic done, 
     input logic [$clog2(WIDTH)-2:0] angle_idx,
 
     output logic signed [TWIDDLE_WIDTH-1:0] twiddle_real,
@@ -40,7 +40,7 @@ module twiddle_factors #(
             twiddle_real <= '0;
             twiddle_imag <= '0;
         end
-        else begin
+        else if (done) begin
             if (swap_flag) begin
                 twiddle_real <= raw_i;
                 twiddle_imag <= -raw_r;
