@@ -6,7 +6,7 @@ WIDTH = 1024
 def main():
     print("Fetching Verilog output and MATLAB reference data...")
     try:
-        with open("results/fft/output.json", 'r') as f:
+        with open("results/output.json", 'r') as f:
             verilog_data = json.load(f)
     except FileNotFoundError:
         print("Error: Verilog output JSON not found.")
@@ -16,10 +16,10 @@ def main():
     verilog_imag = np.zeros(WIDTH+1)
 
     try:
-        with open("data/fft/ref.json", "r") as f:
+        with open("data/ref.json", "r") as f:
             matlab_data = json.load(f)
     except FileNotFoundError:
-        print("Error: MATLAB refernece JSON not found.")
+        print("Error: MATLAB reference JSON not found.")
         return
     
     matlab_real = np.zeros(WIDTH+1)

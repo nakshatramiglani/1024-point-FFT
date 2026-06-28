@@ -1,10 +1,10 @@
 scriptFolder = fileparts(mfilename('fullpath'));
 cd(scriptFolder);
-outFile = "data/fft/ref.json";
+outFile = "data/ref.json";
 
 N = 1024;
 
-data = readmatrix("data/fft/input.txt");
+data = readmatrix("data/input.txt");
 X = data(:, 1) + 1i * data(:, 2);
 tic;
 X_fft = fft(X, N);

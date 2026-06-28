@@ -43,7 +43,7 @@ fi
 echo ""
 echo "[2/4] Compiling and Simulating Verilog..."
 # Using -g2012 to support SystemVerilog features like always_comb and 2D array ports
-iverilog -g2012 -o test fft.v fft-test.v
+iverilog -g2012 -I submodules -o test fft_pipelined.v fft-test.v
 
 # Run the compiled simulation executable
 vvp test

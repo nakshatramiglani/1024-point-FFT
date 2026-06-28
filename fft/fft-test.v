@@ -26,6 +26,13 @@ module fft_top_tb;
     logic signed [IN_WIDTH - 1:0] out_real;
     logic signed [IN_WIDTH - 1:0] out_imag;
 
+    integer file_in;
+    integer file_out;
+    integer scan_result;
+
+    logic signed [IN_WIDTH-1:0] input_real [0:WIDTH-1];
+    logic signed [IN_WIDTH-1:0] input_imag [0:WIDTH-1];
+
     fft_top #(
         .WIDTH(WIDTH),
         .IN_WIDTH(IN_WIDTH),
@@ -48,6 +55,31 @@ module fft_top_tb;
     initial begin
         $dumpfile("testbenches/fft_top_tb.vcd");
         $dumpvars(0, fft_top_tb);
+
+        file_in = $fopen("data/input.txt", "r");
+        if (file_in == 0) begin
+            $display("Error: Input file not found.");
+            $finish;
+        end
+
+        file_out = $fopen("results/output.json", "w");
+        if (file_out == 0) begin
+            $display("Error: Could not open output file.");
+            $finish;
+        end
+
+        $fdisplay(file_out, "{");
+
+        for (int i = 0; i < WIDTH; i++) begin
+            scan_result = $fscanf(file_in, "%d %d",
+                                input_real[i],
+                                input_imag[i]);
+
+            if (scan_result != 2)
+                $display("Warning: Incorrect input format on line %0d.", i);
+        end
+
+        $fclose(file_in);
     end
 
     integer sim_cycle = 0;
@@ -66,10 +98,30 @@ module fft_top_tb;
             end
             
             // 2. Display Outputs ONLY when the valid FFT frame emerges
-            if (sim_cycle > OUTPUT_START && sim_cycle <= OUTPUT_END + 1) begin
-                $display("Time: %0t | OUT | Bin: %2d   | Val: (%8f, %8f)",
-                         $time, (sim_cycle - OUTPUT_START - 1),
-                         real'(out_real) / SCALE, real'(out_imag) / SCALE);
+            if (sim_cycle - 1 > OUTPUT_START && sim_cycle <= OUTPUT_END + 1) begin
+                integer bin;
+                bin = sim_cycle - OUTPUT_START - 1;
+
+                if (bin != WIDTH) begin
+                    $fdisplay(file_out,
+                        "    \"out_%0d\": [", bin);
+                    $fdisplay(file_out,
+                        "        %0f,", real'(out_real)/SCALE);
+                    $fdisplay(file_out,
+                        "        %0f", real'(out_imag)/SCALE);
+                    $fdisplay(file_out,
+                        "    ],");
+                end
+                else begin
+                    $fdisplay(file_out,
+                        "    \"out_%0d\": [", bin);
+                    $fdisplay(file_out,
+                        "        %0f,", real'(out_real)/SCALE);
+                    $fdisplay(file_out,
+                        "        %0f", real'(out_imag)/SCALE);
+                    $fdisplay(file_out,
+                        "    ]");
+                end
             end
         end
     end
@@ -88,8 +140,8 @@ module fft_top_tb;
         
         // Feed 16-point Ramp Data
         for(i = 0; i < WIDTH; i = i + 1) begin
-            in_real <= (i << 15); 
-            in_imag <= 0;
+            in_real <= (input_real[i] << 15); 
+            in_imag <= (input_imag[i] << 15);
             sample_count <= i;
             @(posedge clk);
         end
@@ -102,6 +154,8 @@ module fft_top_tb;
             @(posedge clk);
         end
 
+        $fdisplay(file_out, "}");
+        $fclose(file_out);
         $finish;
     end
 
