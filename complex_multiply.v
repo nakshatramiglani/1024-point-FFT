@@ -1,5 +1,5 @@
 module complex_multiply #(
-    parameter FFT_WIDTH = 32,
+    parameter FFT_WIDTH = 36,
     parameter TWIDDLE_WIDTH = 16
 )(
     input logic clk,
@@ -11,8 +11,8 @@ module complex_multiply #(
     input logic signed [FFT_WIDTH-1:0] mul2_real,
     input logic signed [FFT_WIDTH-1:0] mul2_imag,
 
-    output logic signed [31:0] out_real,
-    output logic signed [31:0] out_imag
+    output logic signed [FFT_WIDTH-1:0] out_real,
+    output logic signed [FFT_WIDTH-1:0] out_imag
 );
     localparam PROD_WIDTH = FFT_WIDTH + TWIDDLE_WIDTH;
     localparam SUM_WIDTH  = PROD_WIDTH + 1;
