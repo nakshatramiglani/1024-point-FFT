@@ -5,6 +5,7 @@ module polyphase_demux_tb;
     // Parameters (Matching the DUT)
     localparam IN_WIDTH = 36;
     localparam NUM_BANKS = 4;
+    localparam WIDTH = 1024;
     localparam BANK_DEPTH = 4;
 
     // DUT Signals
@@ -17,8 +18,9 @@ module polyphase_demux_tb;
     logic signed [IN_WIDTH - 1:0] broadcast_imag;
     logic [NUM_BANKS - 1:0] bank_we;
     logic [$clog2(BANK_DEPTH) - 1:0] bank_waddr;
-    logic ping_pong_select;
     logic frame_done;
+    logic [$clog2(WIDTH):0]counter;
+    reg signed [35:0] i = 0;
 
     // Instantiate the Device Under Test (DUT)
     polyphase_demux #(
@@ -34,8 +36,8 @@ module polyphase_demux_tb;
         .broadcast_imag(broadcast_imag),
         .bank_we(bank_we),
         .bank_waddr(bank_waddr),
-        .ping_pong_select(ping_pong_select),
-        .frame_done(frame_done)
+        .frame_done(frame_done),
+        .counter(counter)
     );
 
     // Clock Generation (100 MHz -> 10ns period)
@@ -63,9 +65,10 @@ module polyphase_demux_tb;
         // A full frame is NUM_BANKS * BANK_DEPTH = 32 * 32 = 1024 samples.
         // We will feed 2100 samples to verify exactly two full frame completions 
         // and the start of a third frame.
-        for (int i = 0; i < 2100; i++) begin
+        for (i = 0; i < 2100; i++) begin
             @(posedge clk);
-            in_real <= i;           // Increasing ramp for easy tracking
+            in_real <= i; 
+            $display          // Increasing ramp for easy tracking
             in_imag <= -i;          // Decreasing ramp for I/Q distinction
         end
 
@@ -74,19 +77,4 @@ module polyphase_demux_tb;
         $display("Simulation complete.");
         $finish;
     end
-
-    // Self-Checking Monitor Block
-    always_ff @(posedge clk) begin
-        if (rst_n) begin
-            // Print a notification to the console every time a frame completes
-            if (frame_done) begin
-                $display("Time: %0t ns | Frame %0d complete! ping_pong_select toggled to: %b | Address wrapped to: %0d",
-                         $time, 
-                         (ping_pong_select ? 1 : 2), // Rough frame counter for console clarity
-                         ping_pong_select, 
-                         bank_waddr);
-            end
-        end
-    end
-
 endmodule

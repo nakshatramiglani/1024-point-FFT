@@ -7,6 +7,7 @@ Data is routed to all memory banks at once and uses a one-hot write-enable decod
 
 module polyphase_demux #(
     parameter IN_WIDTH = 36,
+    parameter WIDTH = 1024, 
     parameter NUM_BANKS = 32, // the M in the M x N representation of the transform (number of banks)
     parameter BANK_DEPTH = 32 // the N in the M x N representation of the transform (depth of each bank)
 )(
@@ -24,6 +25,7 @@ module polyphase_demux #(
     output logic signed [IN_WIDTH - 1:0] broadcast_imag,
     output logic [NUM_BANKS - 1:0] bank_we, // One-hot write enable (column)
     output logic [$clog2(BANK_DEPTH) - 1:0] bank_waddr, // Shared write address for all banks (row)
+    output reg [$clog2(WIDTH) :0] counter,
     output logic frame_done // Goes high for 1 cycle when a full 2D grid is populated
     );
 
@@ -50,6 +52,7 @@ module polyphase_demux #(
             addr_cnt <= '0;
             frame_done <= 1'b0;
             bank_we <= '0;
+            counter <= '0;
         end
         else begin
             frame_done <= 1'b0;
@@ -69,8 +72,15 @@ module polyphase_demux #(
                 else begin
                     phase_cnt <= phase_cnt + 1;
                 end
+
+                if (counter == WIDTH)
+                    counter <= 0;
+                else
+                    counter <= counter + 1;
             /*end*/
         end
     end
 
 endmodule
+
+
