@@ -5,7 +5,7 @@ module polyphase_demux_tb;
     // Parameters (Matching the DUT)
     localparam IN_WIDTH = 36;
     localparam NUM_BANKS = 4;
-    localparam WIDTH = 1024;
+    localparam WIDTH = 16;
     localparam BANK_DEPTH = 4;
 
     // DUT Signals
@@ -26,7 +26,8 @@ module polyphase_demux_tb;
     polyphase_demux #(
         .IN_WIDTH(IN_WIDTH),
         .NUM_BANKS(NUM_BANKS),
-        .BANK_DEPTH(BANK_DEPTH)
+        .BANK_DEPTH(BANK_DEPTH),
+        .WIDTH(WIDTH)
     ) dut (
         .clk(clk),
         .rst_n(rst_n),

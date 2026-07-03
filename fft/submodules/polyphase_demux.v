@@ -62,34 +62,34 @@ module polyphase_demux #(
             frame_done <= 1'b0;
             bank_we <= '0;
             /*if (valid_in) begin*/ // Subject to inclusion
-                bank_we[phase_cnt] <= 1'b1; // Asserts one-hot write-enable only to current bank
-                if (phase_cnt == NUM_BANKS - 1) begin
-                    phase_cnt <= '0; // Wrap around to zero to start with next row
-                    if (addr_cnt == BANK_DEPTH - 1) begin // If this was the last row and it is complete, the entire M x N grid is populated.
-                        frame_done <= 1'b1;
-                        ping_pong_select <= ~ping_pong_select;
-                        addr_cnt <= '0;
-                    end
-                    else begin
-                        addr_cnt <= addr_cnt + 1; // If this wasn't the last row but it is complete, move onto the next one
-                    end
+                if (phase_cnt == NUM_BANKS) begin
+                    phase_cnt <= 1; // Wrap around to 0 to start with next row
                 end
                 else begin
                     phase_cnt <= phase_cnt + 1;
                 end
 
-                if (counter == WIDTH)
-                    counter <= 0;
+                if (phase_cnt == 0) begin
+                    if (addr_cnt == BANK_DEPTH - 1) begin // If this was the last row and it is complete, the entire M x N grid is populated.
+                            addr_cnt <= '0;
+                        end
+                    else begin
+                            addr_cnt <= addr_cnt + 1; // If this wasn't the last row but it is complete, move onto the next one
+                        end
+                end
+
+                if (counter == WIDTH) begin
+                    counter <= '0;
+                    frame_done <= '1;
+                    ping_pong_reg <= ~ ping_pong_reg ;
+                end 
                 else
                     counter <= counter + 1;
+
+            bank_we <= 1'b1 << phase_cnt;// Asserts one-hot write-enable only to current bank
             /*end*/
         end
     end
-
-    always_ff @(posedge clk) begin
-        ping_pong_reg <= ping_pong_select;
-    end
-
 endmodule
 
 

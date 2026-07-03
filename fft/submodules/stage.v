@@ -134,6 +134,8 @@ module stage #(
             .delayed_imag(raw_delayed_imag)
     );
 
+//find a way to remove this buffer
+
     buffer #(.DEPTH(DELAY), .DATA_WIDTH(DATA_WIDTH))
         feedback_buff_inst(
             .clk(clk),
