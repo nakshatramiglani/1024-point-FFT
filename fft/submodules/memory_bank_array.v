@@ -9,6 +9,7 @@ module memory_bank_array #(
 )(
     // Control signals
     input logic clk,
+    input logic ping_pong_sel_w, // Ping-pong select for write operations (this input will come from the scheduler)
 
     // Data inputs
     input logic signed [IN_WIDTH - 1:0] in_real,
@@ -28,6 +29,9 @@ module memory_bank_array #(
     output logic signed [IN_WIDTH - 1:0] out_imag
 
 );
+    logic ping_pong_sel_r;
+    assign ping_pong_sel_r = ~ping_pong_sel_w; // Ping-pong select for read operations (inverse of the write signal)
+
     // Internal arrays to capture outputs from all instantiated memory banks
     logic signed [IN_WIDTH - 1:0] mem_out_real [0:NUM_BANKS - 1];
     logic signed [IN_WIDTH - 1:0] mem_out_imag [0:NUM_BANKS - 1];
@@ -48,15 +52,15 @@ module memory_bank_array #(
         for (i = 0; i < NUM_BANKS; i++) begin: gen_banks
             memory_bank #(
                 .IN_WIDTH(IN_WIDTH),
-                .BANK_DEPTH(BANK_DEPTH)
+                .BANK_DEPTH(BANK_DEPTH * 2) // Doubles the bank depth to create two separate banks
             ) bank_inst (
                 .clk(clk),
                 .in_real(in_real),
                 .in_imag(in_imag),
                 .we(bank_we[i]),
-                .waddr(bank_waddr),
+                .waddr({ping_pong_sel_w, bank_waddr}), // Concatenates the ping_pong_select with the bank address
                 .re(bank_re[i]), // Gated read-enable: only active if this specific bank is selected
-                .raddr(bank_raddr),
+                .raddr({ping_pong_sel_r, bank_raddr}), // Concatenates the ping_pong_select with the bank address
                 .out_real(mem_out_real[i]),
                 .out_imag(mem_out_imag[i])
             );

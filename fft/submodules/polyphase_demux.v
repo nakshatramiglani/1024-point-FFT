@@ -26,7 +26,8 @@ module polyphase_demux #(
     output logic [NUM_BANKS - 1:0] bank_we, // One-hot write enable (column)
     output logic [$clog2(BANK_DEPTH) - 1:0] bank_waddr, // Shared write address for all banks (row)
     output reg [$clog2(WIDTH) :0] counter,
-    output logic frame_done // Goes high for 1 cycle when a full 2D grid is populated
+    output logic frame_done, // Goes high for 1 cycle when a full 2D grid is populated
+    output logic ping_pong_reg
     );
 
     // Calculate bit-widths needed for internal hardware counters
@@ -45,6 +46,7 @@ module polyphase_demux #(
     assign broadcast_imag = in_imag;
 
     assign bank_waddr = addr_cnt;
+    reg ping_pong_select;
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -53,6 +55,8 @@ module polyphase_demux #(
             frame_done <= 1'b0;
             bank_we <= '0;
             counter <= '0;
+            ping_pong_select <= '0;
+            ping_pong_reg <= '0;
         end
         else begin
             frame_done <= 1'b0;
@@ -63,6 +67,7 @@ module polyphase_demux #(
                     phase_cnt <= '0; // Wrap around to zero to start with next row
                     if (addr_cnt == BANK_DEPTH - 1) begin // If this was the last row and it is complete, the entire M x N grid is populated.
                         frame_done <= 1'b1;
+                        ping_pong_select <= ~ping_pong_select;
                         addr_cnt <= '0;
                     end
                     else begin
@@ -79,6 +84,10 @@ module polyphase_demux #(
                     counter <= counter + 1;
             /*end*/
         end
+    end
+
+    always_ff @(posedge clk) begin
+        ping_pong_reg <= ping_pong_select;
     end
 
 endmodule

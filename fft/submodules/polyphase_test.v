@@ -37,7 +37,8 @@ module polyphase_demux_tb;
         .bank_we(bank_we),
         .bank_waddr(bank_waddr),
         .frame_done(frame_done),
-        .counter(counter)
+        .counter(counter),
+        .ping_pong_reg(ping_pong_reg)
     );
 
     // Clock Generation (100 MHz -> 10ns period)
@@ -68,7 +69,6 @@ module polyphase_demux_tb;
         for (i = 0; i < 2100; i++) begin
             @(posedge clk);
             in_real <= i; 
-            $display          // Increasing ramp for easy tracking
             in_imag <= -i;          // Decreasing ramp for I/Q distinction
         end
 
