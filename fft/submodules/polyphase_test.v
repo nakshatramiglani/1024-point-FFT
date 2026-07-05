@@ -11,6 +11,7 @@ module polyphase_demux_tb;
     // DUT Signals
     logic clk;
     logic rst_n;
+    logic ping_pong_select;
     logic signed [IN_WIDTH - 1:0] in_real;
     logic signed [IN_WIDTH - 1:0] in_imag;
 
@@ -39,7 +40,7 @@ module polyphase_demux_tb;
         .bank_waddr(bank_waddr),
         .frame_done(frame_done),
         .counter(counter),
-        .ping_pong_reg(ping_pong_reg)
+        .ping_pong_select(ping_pong_select)
     );
 
     // Clock Generation (100 MHz -> 10ns period)
@@ -68,7 +69,7 @@ module polyphase_demux_tb;
         // We will feed 2100 samples to verify exactly two full frame completions 
         // and the start of a third frame.
         for (i = 0; i < 2100; i++) begin
-            @(posedge clk);
+            @(negedge clk);
             in_real <= i; 
             in_imag <= -i;          // Decreasing ramp for I/Q distinction
         end

@@ -27,7 +27,7 @@ module polyphase_demux #(
     output logic [$clog2(BANK_DEPTH) - 1:0] bank_waddr, // Shared write address for all banks (row)
     output reg [$clog2(WIDTH) :0] counter,
     output logic frame_done, // Goes high for 1 cycle when a full 2D grid is populated
-    output logic ping_pong_reg
+    output logic ping_pong_select
     );
 
     // Calculate bit-widths needed for internal hardware counters
@@ -45,8 +45,7 @@ module polyphase_demux #(
     assign broadcast_real = in_real;
     assign broadcast_imag = in_imag;
 
-    assign bank_waddr = addr_cnt;
-    reg ping_pong_select;
+    reg ping_pong_reg;
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -57,19 +56,16 @@ module polyphase_demux #(
             counter <= '0;
             ping_pong_select <= '0;
             ping_pong_reg <= '0;
+            bank_waddr = '0;
         end
         else begin
             frame_done <= 1'b0;
             bank_we <= '0;
+            bank_waddr <= addr_cnt;
+            ping_pong_select <= ping_pong_reg;
             /*if (valid_in) begin*/ // Subject to inclusion
-                if (phase_cnt == NUM_BANKS) begin
-                    phase_cnt <= 1; // Wrap around to 0 to start with next row
-                end
-                else begin
-                    phase_cnt <= phase_cnt + 1;
-                end
-
-                if (phase_cnt == 0) begin
+                if (phase_cnt == NUM_BANKS - 1) begin
+                    phase_cnt <= '0; // Wrap around to 0 to start with next row
                     if (addr_cnt == BANK_DEPTH - 1) begin // If this was the last row and it is complete, the entire M x N grid is populated.
                             addr_cnt <= '0;
                         end
@@ -77,8 +73,11 @@ module polyphase_demux #(
                             addr_cnt <= addr_cnt + 1; // If this wasn't the last row but it is complete, move onto the next one
                         end
                 end
+                else begin
+                    phase_cnt <= phase_cnt + 1;
+                end
 
-                if (counter == WIDTH) begin
+                if (counter == WIDTH - 1) begin
                     counter <= '0;
                     frame_done <= '1;
                     ping_pong_reg <= ~ ping_pong_reg ;
