@@ -1,6 +1,6 @@
 import math
 
-WIDTH = 1024
+WIDTH = 32
 QUARTER_WIDTH = WIDTH // 4
 SCALE = 32768.0
 
