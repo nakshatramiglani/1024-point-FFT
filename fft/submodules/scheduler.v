@@ -1,77 +1,89 @@
-module scheduler#(
-    parameter IN_WIDTH = 36,
+`timescale 1 ns / 1 ps
+
+module scheduler #(
     parameter WIDTH = 1024,
-    parameter NUM_BANKS = 32, // the M in the MxN representation of the transform (number of banks)
-    parameter BANK_DEPTH = 32 // the N in the MxN representation of the transform (depth of each bank)
+    parameter NUM_BANKS = 32,  
+    parameter BANK_DEPTH = 32 
 )(
     input logic clk,
     input logic rst_n,
-    input [$clog2(WIDTH):0] counter,
-    //input ping_pong_select,
+    
+    input logic [$clog2(WIDTH):0] counter, 
+    output logic [$clog2(NUM_BANKS) - 1:0]  bank_select,
+    output logic [$clog2(BANK_DEPTH) - 1:0] bank_raddr,
+    output logic [NUM_BANKS - 1:0]          bank_re,
+    output logic                            ping_pong_sel_r,
 
-    //Outputs to memory bank
-    output logic [$clog2(NUM_BANKS) - 1:0] bank_select, // The selection signal received from the scheduler
-    output logic [$clog2(BANK_DEPTH) - 1:0] bank_raddr, // The address to be accessed within the selected bank; received from scheduler
-    output logic [NUM_BANKS-1:0] bank_re,// The one-hot read-enable signal received from the scheduler
-    output logic valid_out
-    );
+    output logic read_valid 
+);
 
-// Calculate the trigger constant requested: size - M - N + 2
     localparam TRIGGER_VAL = WIDTH - NUM_BANKS - BANK_DEPTH + 2;
 
-    // Internal tracking counters for reading
-    logic [$clog2(NUM_BANKS) - 1:0] r_bank_sel;
-    logic [$clog2(BANK_DEPTH) - 1:0] r_addr_cnt;
     logic reading;
-    logic reading_delayed;
+    logic trigger_now;
+    logic read_last_cycle;
+    logic write_buffer_sel;
+    logic [$clog2(NUM_BANKS)-1:0] next_bank_select;
 
-    // Assign address read controls directly from internal counters
-    assign bank_select = r_bank_sel;
-    assign bank_raddr  = r_addr_cnt;
+    assign trigger_now     = (counter == TRIGGER_VAL);
+    assign read_last_cycle = reading && (bank_raddr == BANK_DEPTH - 1) && (bank_select == NUM_BANKS - 1);
+    
+    // Look-ahead bank logic
+    assign next_bank_select = (bank_raddr == BANK_DEPTH - 1) ? (bank_select + 1'b1) : bank_select;
 
-    // Generate the one-hot read enable vector
-    always_comb begin
-        bank_re = '0;
-        if (reading) begin
-            bank_re[r_bank_sel] = 1'b1;
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            write_buffer_sel <= 1'b0;
+        end else if (counter == WIDTH - 1) begin
+            write_buffer_sel <= ~write_buffer_sel; 
         end
     end
 
-    // Sequential matrix readout logic (Column-by-Column Transpose)
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            r_bank_sel      <= '0;
-            r_addr_cnt      <= '0;
             reading         <= 1'b0;
-            reading_delayed <= 1'b0;
+            bank_select     <= '0;
+            bank_raddr      <= '0;
+            bank_re         <= '0;
+            read_valid      <= 1'b0;
+            ping_pong_sel_r <= 1'b0;
         end else begin
-            reading_delayed <= reading;
-
-            if (!reading) begin
-                // Check if the current frame write has progressed far enough to start reading
-                if (counter == TRIGGER_VAL) begin
-                    reading    <= 1'b1;
-                    r_bank_sel <= '0;
-                    r_addr_cnt <= '0;
-                end
-            end else begin
-                // Traverse down the column of the current memory bank first
-                if (r_addr_cnt == BANK_DEPTH - 1) begin
-                    r_addr_cnt <= '0;
-                    // Move to the next memory bank (next column)
-                    if (r_bank_sel == NUM_BANKS - 1) begin
-                        reading <= 1'b0; // All elements read out for this frame
-                    end else begin
-                        r_bank_sel <= r_bank_sel + 1;
-                    end
+            //new frame trigger hits
+            if (trigger_now) begin
+                reading         <= 1'b1;
+                read_valid      <= 1'b1;
+                bank_select     <= '0;
+                bank_raddr      <= '0;
+                bank_re         <= NUM_BANKS'(1); 
+                ping_pong_sel_r <= write_buffer_sel; 
+            end 
+            // readout in progress
+            else if (reading) begin
+                if (read_last_cycle) begin
+                    reading         <= 1'b0;
+                    read_valid      <= 1'b0;
+                    bank_select     <= '0;
+                    bank_raddr      <= '0;
+                    bank_re         <= '0;
                 end else begin
-                    r_addr_cnt <= r_addr_cnt + 1;
+                    read_valid      <= 1'b1;
+
+                    if (bank_raddr == BANK_DEPTH - 1) begin
+                        bank_raddr  <= '0;
+                        bank_select <= bank_select + 1'b1;
+                    end else begin
+                        bank_raddr  <= bank_raddr + 1'b1;
+                    end
+
+
+                    bank_re<= (NUM_BANKS'(1) << next_bank_select);
                 end
+            end 
+            else begin
+                read_valid          <= 1'b0;
+                bank_re             <= '0;
             end
         end
     end
 
-    assign valid_out = reading;
-
-     
 endmodule
