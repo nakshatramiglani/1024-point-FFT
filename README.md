@@ -5,7 +5,7 @@
 ![Language: MATLAB](https://img.shields.io/badge/Language-MATLAB-orange.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-A streaming, fully-pipelined **1024-point radix-2 Decimation-in-Time FFT core** written in synthesizable Verilog/SystemVerilog, built around a **Single-path Delay Feedback (SDF)** butterfly architecture. The design uses **16-bit Q15 fixed-point twiddle factors** with a **wider 36-bit internal datapath** to preserve precision across all 10 pipeline stages, and is verified end-to-end against a double-precision MATLAB golden reference through a fully automated Python/MATLAB/Verilog co-simulation pipeline.
+A streaming, fully-pipelined **1024-point radix-2 Decimation-in-Frequency FFT core** written in synthesizable Verilog/SystemVerilog, built around a **Single-path Delay Feedback (SDF)** butterfly architecture. The design uses **16-bit Q15 fixed-point twiddle factors** with a **wider 36-bit internal datapath** to preserve precision across all 10 pipeline stages, and is verified end-to-end against a double-precision MATLAB golden reference through a fully automated Python/MATLAB/Verilog co-simulation pipeline.
 
 ## Table of Contents
 - [Architecture](#architecture)
