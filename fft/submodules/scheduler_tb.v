@@ -2,7 +2,7 @@
 module tb_polyphase_system;
 
     localparam IN_WIDTH   = 32;
-    localparam NUM_BANKS  = 16;   // M
+    localparam NUM_BANKS  = 16;  // M
     localparam BANK_DEPTH = 4;   // N
     localparam WIDTH      = 64;  // M x N
 

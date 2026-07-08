@@ -14,7 +14,8 @@ module fft_top #(
     input  logic [$clog2(WIDTH)-1:0] sample_count,
 
     output logic signed [IN_WIDTH-1:0] out_real,
-    output logic signed [IN_WIDTH-1:0] out_imag
+    output logic signed [IN_WIDTH-1:0] out_imag,
+    output logic [$clog2(WIDTH) - 1:0] out_sample_count
 );
 
     //localparameters
@@ -87,4 +88,5 @@ module fft_top #(
 
     assign out_real = stage_real[NUM_STAGES];
     assign out_imag = stage_imag[NUM_STAGES];
+    assign out_sample_count = stage_count[NUM_STAGES];
 endmodule
