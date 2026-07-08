@@ -1,6 +1,4 @@
-
 `timescale 1 ns / 1 ps
-
 
 module scheduler #(
     parameter WIDTH = 1024,
@@ -27,15 +25,11 @@ module scheduler #(
     logic write_buffer_sel;
     logic [$clog2(NUM_BANKS)-1:0] next_bank_select;
 
-
-    logic [$clog2(BANK_DEPTH) - 1:0] internal_raddr;
-    assign bank_raddr = {internal_raddr[0], internal_raddr[$clog2(BANK_DEPTH)-1:1]};
-
     assign trigger_now     = (counter == TRIGGER_VAL);
-    assign read_last_cycle = reading && (internal_raddr == BANK_DEPTH - 1) && (bank_select == NUM_BANKS - 1);
+    assign read_last_cycle = reading && (bank_raddr == BANK_DEPTH - 1) && (bank_select == NUM_BANKS - 1);
     
     // Look-ahead bank logic
-    assign next_bank_select = (internal_raddr == BANK_DEPTH - 1) ? (bank_select + 1'b1) : bank_select;
+    assign next_bank_select = (bank_raddr == BANK_DEPTH - 1) ? (bank_select + 1'b1) : bank_select;
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -49,17 +43,17 @@ module scheduler #(
         if (!rst_n) begin
             reading         <= 1'b0;
             bank_select     <= '0;
-            internal_raddr  <= '0;
+            bank_raddr      <= '0;
             bank_re         <= '0;
             read_valid      <= 1'b0;
             ping_pong_sel_r <= 1'b0;
         end else begin
-            // new frame trigger hits
+            //new frame trigger hits
             if (trigger_now) begin
                 reading         <= 1'b1;
                 read_valid      <= 1'b1;
                 bank_select     <= '0;
-                internal_raddr  <= '0;
+                bank_raddr      <= '0;
                 bank_re         <= NUM_BANKS'(1); 
                 ping_pong_sel_r <= write_buffer_sel; 
             end 
@@ -69,19 +63,20 @@ module scheduler #(
                     reading         <= 1'b0;
                     read_valid      <= 1'b0;
                     bank_select     <= '0;
-                    internal_raddr  <= '0;
+                    bank_raddr      <= '0;
                     bank_re         <= '0;
                 end else begin
                     read_valid      <= 1'b1;
 
-                    if (internal_raddr == BANK_DEPTH - 1) begin
-                        internal_raddr <= '0;
-                        bank_select    <= bank_select + 1'b1;
+                    if (bank_raddr == BANK_DEPTH - 1) begin
+                        bank_raddr  <= '0;
+                        bank_select <= bank_select + 1'b1;
                     end else begin
-                        internal_raddr <= internal_raddr + 1'b1;
+                        bank_raddr  <= bank_raddr + 1'b1;
                     end
 
-                    bank_re <= (NUM_BANKS'(1) << next_bank_select);
+
+                    bank_re<= (NUM_BANKS'(1) << next_bank_select);
                 end
             end 
             else begin
