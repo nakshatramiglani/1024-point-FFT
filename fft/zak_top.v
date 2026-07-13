@@ -7,7 +7,7 @@
 `timescale 1 ns / 1 ps
 module zak_top #(
     parameter WIDTH = 1024,
-    parameter IN_WIDTH = 36,
+    parameter IN_WIDTH = 32,
     parameter NUM_BANKS = 32,  
     parameter BANK_DEPTH = 32 
 )(

@@ -2,7 +2,7 @@
 `include "memory_bank.v"
 
 module memory_bank_array #(
-    parameter IN_WIDTH = 36,
+    parameter IN_WIDTH = 32,
     parameter NUM_BANKS = 32, // The M in the M x N representation
     parameter BANK_DEPTH = 32 // The N in the M x N representation
 )(

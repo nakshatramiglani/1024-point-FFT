@@ -31,23 +31,21 @@ integer i;
 assign delayed_real = mem_real[ptr];
 assign delayed_imag = mem_imag[ptr];
 
-always @(posedge clk or negedge nrst) begin
-    if (!nrst) begin
-        ptr          <= '0;
-        for (i = 0; i < DEPTH; i = i + 1) begin
-            mem_real[i] <= '0;
-            mem_imag[i] <= '0;
-        end
+initial begin
+    ptr = '0;
+    for (i = 0; i < DEPTH; i = i + 1) begin
+        mem_real[i] = '0;
+        mem_imag[i] = '0;
     end
-    else begin
+end
 
-        mem_real[ptr] <= in_real;
-        mem_imag[ptr] <= in_imag;
-        if (ptr == DEPTH - 1)
-            ptr <= '0;
-        else
-            ptr <= ptr + 1'b1;
-    end
+always @(posedge clk) begin
+    mem_real[ptr] <= in_real;
+    mem_imag[ptr] <= in_imag;
+    if (ptr == DEPTH - 1)
+        ptr <= '0;
+    else
+        ptr <= ptr + 1'b1;
 end
 
 endmodule

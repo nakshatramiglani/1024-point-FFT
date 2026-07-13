@@ -6,7 +6,7 @@ module tb_zak_top;
     // Parameters
     //--------------------------------------------------------
     localparam WIDTH      = 1024;
-    localparam IN_WIDTH   = 36;
+    localparam IN_WIDTH   = 32;
     localparam NUM_BANKS  = 32;
     localparam BANK_DEPTH = 32;
 

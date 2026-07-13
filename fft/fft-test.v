@@ -3,7 +3,7 @@
 module fft_top_tb;
 
     parameter WIDTH = 32;
-    parameter IN_WIDTH = 36;       
+    parameter IN_WIDTH = 32;       
     parameter TWIDDLE_WIDTH = 16;
     
     // Using localparam real for Verilog compatibility

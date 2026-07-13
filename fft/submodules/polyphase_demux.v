@@ -6,7 +6,7 @@ Data is routed to all memory banks at once and uses a one-hot write-enable decod
 */
 
 module polyphase_demux #(
-    parameter IN_WIDTH = 36,
+    parameter IN_WIDTH = 32,
     parameter WIDTH = 1024, 
     parameter NUM_BANKS = 32, // the M in the M x N representation of the transform (number of banks)
     parameter BANK_DEPTH = 32 // the N in the M x N representation of the transform (depth of each bank)

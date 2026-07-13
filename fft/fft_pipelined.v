@@ -4,7 +4,7 @@
 
 module fft_top #(
     parameter WIDTH = 16,
-    parameter IN_WIDTH = 36,
+    parameter IN_WIDTH = 32,
     parameter TWIDDLE_WIDTH = 16
 )(
     input  logic clk,

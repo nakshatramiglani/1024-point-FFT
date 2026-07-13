@@ -1,7 +1,7 @@
 `timescale 1 ns / 1 ps
 
 module output_formatter #(
-    parameter IN_WIDTH = 36,
+    parameter IN_WIDTH = 32,
     parameter FFT_WIDTH = 32 // the N in the M x N representation of the transform (depth of each bank)
 )(
     // Control signals
