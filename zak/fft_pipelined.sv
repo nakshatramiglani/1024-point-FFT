@@ -1,10 +1,10 @@
 `timescale 1ns/1ps
 
-`include "stage.v"
+`include "submodules/stage.v"
 
 module fft_top #(
-    parameter WIDTH = 32,
-    parameter IN_WIDTH = 36,
+    parameter WIDTH = 16,
+    parameter IN_WIDTH = 32,
     parameter TWIDDLE_WIDTH = 16
 )(
     input  logic clk,
@@ -15,7 +15,7 @@ module fft_top #(
 
     output logic signed [IN_WIDTH-1:0] out_real,
     output logic signed [IN_WIDTH-1:0] out_imag,
-    output logic signed [$clog2(WIDTH) - 1:0] out_sample_count
+    output logic [$clog2(WIDTH) - 1:0] out_sample_count
 );
 
     //localparameters
@@ -36,8 +36,8 @@ module fft_top #(
     (* ram_style="distributed" *) logic signed [TWIDDLE_WIDTH-1:0] rom_imag [0:QUARTER_WIDTH-1];
 
     initial begin
-        $readmemh("../data/twiddles_real.hex", rom_real);
-        $readmemh("../data/twiddles_imag.hex", rom_imag);
+        $readmemh("twiddles_real.hex", rom_real);
+        $readmemh("twiddles_imag.hex", rom_imag);
     end
 
     genvar i;
@@ -89,4 +89,5 @@ module fft_top #(
     assign out_real = stage_real[NUM_STAGES];
     assign out_imag = stage_imag[NUM_STAGES];
     assign out_sample_count = stage_count[NUM_STAGES];
+
 endmodule
