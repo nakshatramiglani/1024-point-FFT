@@ -36,8 +36,8 @@ module fft_top #(
     (* ram_style="distributed" *) logic signed [TWIDDLE_WIDTH-1:0] rom_imag [0:QUARTER_WIDTH-1];
 
     initial begin
-        $readmemh("data/twiddles_real.hex", rom_real);
-        $readmemh("data/twiddles_imag.hex", rom_imag);
+        $readmemh("twiddles_real.hex", rom_real);
+        $readmemh("twiddles_imag.hex", rom_imag);
     end
 
     genvar i;
