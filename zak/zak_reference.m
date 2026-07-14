@@ -7,8 +7,8 @@ M = 32;                 % Number of banks
 N = 32;                 % FFT length
 WIDTH = M*N;
 
-%% Input Ramp
-x = 0:WIDTH-1;
+data = load('input.txt');
+x = (data(:, 1) + 1i * data(:, 2));
 
 %% Arrange exactly as the hardware writes
 % Row-wise fill of a 32x32 matrix
@@ -39,7 +39,7 @@ for bank = 1:M
 end
 
 %% Save reference
-fid = fopen('golden_reference.txt','w');
+fid = fopen('zak/golden_reference.txt','w');
 
 for k = 1:length(golden)
     fprintf(fid,'%.10f %.10f\n',real(golden(k)),imag(golden(k)));

@@ -2,9 +2,9 @@ import random
 
 # FFT Parameters
 WIDTH = 1024
-MAX_AMPLITUDE = 10000  # Safe range to prevent overflow during butterfly additions
+MAX_AMPLITUDE = 1000  # Safe range to prevent overflow during butterfly additions
 
-with open("data/input.txt", "w") as f:
+with open("input.txt", "w") as f:
     for i in range(WIDTH):
         # Generate random integers for both real and imaginary parts
         real_val = random.randint(-MAX_AMPLITUDE, MAX_AMPLITUDE)

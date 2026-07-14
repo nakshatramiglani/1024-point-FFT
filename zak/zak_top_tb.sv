@@ -53,6 +53,11 @@ module tb_zak_top;
     //--------------------------------------------------------
     integer data_file;
     integer debug_file;
+    integer in_file;
+    integer scan_val;
+
+    integer temp_real;
+    integer temp_imag;
 
     //--------------------------------------------------------
     // Stimulus
@@ -61,6 +66,7 @@ module tb_zak_top;
         // Open the files for writing
         data_file  = $fopen("hardware_output.txt", "w");
         debug_file = $fopen("zak_debug_log.txt", "w");
+        in_file = $fopen("input.txt", "r");
         
         if (data_file == 0) begin
             $display("ERROR: Could not open hardware_output.txt for writing!");
@@ -68,6 +74,10 @@ module tb_zak_top;
         end
         if (debug_file == 0) begin
             $display("ERROR: Could not open zak_debug_log.txt for writing!");
+            $finish;
+        end
+        if (in_file == 0) begin
+            $display("ERROR: Could not open input.txt for reading! Check your Vivado simulation directory.");
             $finish;
         end
 
@@ -81,8 +91,12 @@ module tb_zak_top;
 
         // Feed one complete frame (1024 samples)
         for (int i = 0; i < WIDTH; i++) begin
-            in_real <= (i << 12); 
-            in_imag <= 0;
+            scan_val = $fscanf(in_file, "%d %d", temp_real, temp_imag);
+            if (scan_val != 2) begin
+                $display("WARNING: Reached EOF or malformed line at index %0d", i);
+            end
+            in_real <= temp_real << 12;
+            in_imag <= temp_imag << 12;
             @(posedge clk);
         end
 
@@ -94,6 +108,7 @@ module tb_zak_top;
         // Close the files before finishing the simulation
         $fclose(data_file);
         $fclose(debug_file);
+        $fclose(in_file);
         $finish;
     end
 

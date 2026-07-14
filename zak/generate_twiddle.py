@@ -4,7 +4,7 @@ WIDTH = 32
 QUARTER_WIDTH = WIDTH // 4
 SCALE = 32768.0
 
-with open("data/twiddles_real.hex", "w") as f_real, open("data/twiddles_imag.hex", "w") as f_imag:
+with open("twiddles_real.hex", "w") as f_real, open("twiddles_imag.hex", "w") as f_imag:
     for k in range(QUARTER_WIDTH):
         # Calculate complex exponential (e^(-j * 2pi * k / N))
         angle = -2.0 * math.pi * k / WIDTH
