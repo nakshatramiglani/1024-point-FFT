@@ -1,6 +1,7 @@
 `timescale 1ns/1ps
 
 `include "submodules/stage.sv"
+`include "submodules/stage_trivial.sv"
 
 module fft_top #(
     parameter WIDTH = 16,
@@ -20,7 +21,7 @@ module fft_top #(
 
     //localparameters
     localparam NUM_STAGES = $clog2(WIDTH);
-    localparam QUARTER_WIDTH = WIDTH/4;
+    localparam QUARTER_WIDTH = (WIDTH >= 4) ? WIDTH/4 : 1;
 
     // Arrays to interconnect the data and control signals
     wire signed [IN_WIDTH-1:0] stage_real [0:NUM_STAGES];
@@ -35,31 +36,56 @@ module fft_top #(
     (* ram_style="distributed" *) logic signed [TWIDDLE_WIDTH-1:0] rom_real [0:QUARTER_WIDTH-1];
     (* ram_style="distributed" *) logic signed [TWIDDLE_WIDTH-1:0] rom_imag [0:QUARTER_WIDTH-1];
 
-    initial begin
-        $readmemh("twiddles_real.hex", rom_real);
-        $readmemh("twiddles_imag.hex", rom_imag);
-    end
+    generate
+        if (WIDTH >= 8) begin : gen_rom_init
+            initial begin
+                $readmemh("twiddles_real.hex", rom_real);
+                $readmemh("twiddles_imag.hex", rom_imag);
+            end
+        end else begin : gen_rom_tieoff
+            initial begin
+                rom_real[0] = '0;
+                rom_imag[0] = '0;
+            end
+        end
+    endgenerate
 
     genvar i;
     generate
         for (i = 1; i <= NUM_STAGES; i = i + 1) begin : gen_fft_stages
-
-            stage #(
-                .WIDTH(WIDTH), 
-                .IN_WIDTH(IN_WIDTH), 
-                .TWIDDLE_WIDTH(TWIDDLE_WIDTH), 
-                .STAGE(i)
-            ) stg_inst (
-                .clk(clk), 
-                .rst_n(rst_n),
-                .in_real(stage_real[i-1]), 
-                .in_imag(stage_imag[i-1]), 
-                .sample_count(stage_count[i-1]), 
-                .rom_imag(rom_imag), 
-                .rom_real(rom_real),
-                .out_real(stage_real[i]), 
-                .out_imag(stage_imag[i])
-            );
+            if (WIDTH == 2 || (WIDTH == 4 && i <= 2)) begin: gen_trivial_stage
+                stage_trivial #(
+                    .WIDTH(WIDTH), 
+                    .IN_WIDTH(IN_WIDTH), 
+                    .STAGE(i)
+                ) stg_inst_trivial (
+                    .clk(clk), 
+                    .rst_n(rst_n),
+                    .in_real(stage_real[i-1]), 
+                    .in_imag(stage_imag[i-1]), 
+                    .sample_count(stage_count[i-1]),
+                    .out_real(stage_real[i]), 
+                    .out_imag(stage_imag[i])
+                );
+            end
+            else begin: gen_complex_stage
+                stage #(
+                    .WIDTH(WIDTH), 
+                    .IN_WIDTH(IN_WIDTH), 
+                    .TWIDDLE_WIDTH(TWIDDLE_WIDTH), 
+                    .STAGE(i)
+                ) stg_inst (
+                    .clk(clk), 
+                    .rst_n(rst_n),
+                    .in_real(stage_real[i-1]), 
+                    .in_imag(stage_imag[i-1]), 
+                    .sample_count(stage_count[i-1]), 
+                    .rom_imag(rom_imag), 
+                    .rom_real(rom_real),
+                    .out_real(stage_real[i]), 
+                    .out_imag(stage_imag[i])
+                );
+            end
 
             begin : gen_delay
                 // Delay = (Buffer Depth of current stage) + 4 cycles

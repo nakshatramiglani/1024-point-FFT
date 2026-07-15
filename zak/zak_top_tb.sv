@@ -7,8 +7,8 @@ module tb_zak_top;
     //--------------------------------------------------------
     localparam WIDTH      = 1024;
     localparam IN_WIDTH   = 32;
-    localparam NUM_BANKS  = 16;
-    localparam BANK_DEPTH = 64;
+    localparam NUM_BANKS  = 32;
+    localparam BANK_DEPTH = 32;
 
     //--------------------------------------------------------
     // Clock / Reset

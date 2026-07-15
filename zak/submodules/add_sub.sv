@@ -1,3 +1,6 @@
+`ifndef ADD_SUB_SV
+`define ADD_SUB_SV
+
 module add_sub #(
     parameter DATA_WIDTH = 32
 )(
@@ -34,3 +37,5 @@ module add_sub #(
     end
 
 endmodule
+
+`endif

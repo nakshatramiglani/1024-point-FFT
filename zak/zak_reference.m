@@ -3,8 +3,8 @@ clear;
 close all;
 
 %% Parameters
-M = 16;                 % Number of banks
-N = 64;                 % FFT length
+M = 32;                 % Number of banks
+N = 32;                 % FFT length
 WIDTH = M*N;
 
 data = load('input.txt');

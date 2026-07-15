@@ -1,3 +1,6 @@
+`ifndef BUFFER_SV
+`define BUFFER_SV
+
 module buffer #(
     parameter DATA_WIDTH = 32,
     parameter DEPTH      = 8
@@ -45,3 +48,5 @@ always @(posedge clk) begin
 end
 
 endmodule
+
+`endif
