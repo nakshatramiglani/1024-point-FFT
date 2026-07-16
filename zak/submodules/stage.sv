@@ -24,7 +24,7 @@ module stage #(
 
     localparam SIZE       = $clog2(WIDTH);
     localparam DATA_WIDTH = IN_WIDTH;
-    localparam DELAY      = 1 << (SIZE - STAGE);
+    localparam DELAY      = 32'd1 << (SIZE - STAGE);
 
     wire signed [DATA_WIDTH-1:0] delay_in_real;
     wire signed [DATA_WIDTH-1:0] delay_in_imag;

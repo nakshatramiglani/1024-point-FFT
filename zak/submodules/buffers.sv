@@ -35,13 +35,20 @@ initial begin
     end
 end
 
-always @(posedge clk) begin
+always_ff @(posedge clk) begin
+    if (!nrst) begin
+        ptr <= '0;
+    end else begin
+        if (ptr == DEPTH - 1)
+            ptr <= '0;
+        else
+            ptr <= ptr + 1'b1;
+    end
+end
+
+always_ff @(posedge clk) begin
     mem_real[ptr] <= in_real;
     mem_imag[ptr] <= in_imag;
-    if (ptr == DEPTH - 1)
-        ptr <= '0;
-    else
-        ptr <= ptr + 1'b1;
 end
 
 endmodule

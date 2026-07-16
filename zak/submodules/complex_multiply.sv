@@ -18,7 +18,7 @@ module complex_multiply #(
     localparam SUM_WIDTH  = PROD_WIDTH + 1;
     logic signed [PROD_WIDTH-1:0] prr, pii, pri, pir;
     logic signed [SUM_WIDTH-1:0] real_full, imag_full;
-    localparam round_val = 1 << (TWIDDLE_WIDTH - 2);
+    localparam logic signed [SUM_WIDTH-1:0] round_val = SUM_WIDTH'(1) << (TWIDDLE_WIDTH - 2);
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -35,11 +35,8 @@ module complex_multiply #(
         end
     end
 
-    assign real_full = $signed({prr[PROD_WIDTH - 1], prr}) -
-                       $signed({pii[PROD_WIDTH - 1], pii});
-
-    assign imag_full = $signed({pri[PROD_WIDTH - 1], pri}) +
-                       $signed({pir[PROD_WIDTH - 1], pir});
+    assign real_full = prr - pii;
+    assign imag_full = pri + pir;
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin

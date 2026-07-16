@@ -21,11 +21,11 @@ module polyphase_demux #(
     input logic signed [IN_WIDTH - 1:0] in_imag,
 
     // Outputs to the memory banks
-    output logic signed [IN_WIDTH - 1:0] broadcast_real,
-    output logic signed [IN_WIDTH - 1:0] broadcast_imag,
+    output wire signed [IN_WIDTH - 1:0] broadcast_real,
+    output wire signed [IN_WIDTH - 1:0] broadcast_imag,
     output logic [NUM_BANKS - 1:0] bank_we, // One-hot write enable (column)
     output logic [$clog2(BANK_DEPTH) - 1:0] bank_waddr, // Shared write address for all banks (row)
-    output reg [$clog2(WIDTH) :0] counter,
+    output logic [$clog2(WIDTH) :0] counter,
     output logic frame_done, // Goes high for 1 cycle when a full 2D grid is populated
     output logic ping_pong_select
     );
@@ -85,7 +85,7 @@ module polyphase_demux #(
                 else
                     counter <= counter + 1;
 
-            bank_we <= 1'b1 << phase_cnt;// Asserts one-hot write-enable only to current bank
+            bank_we <= 32'b1 << phase_cnt;// Asserts one-hot write-enable only to current bank
             /*end*/
         end
     end

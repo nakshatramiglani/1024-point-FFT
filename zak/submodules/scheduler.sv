@@ -1,3 +1,4 @@
+
 `timescale 1 ns / 1 ps
 
 module scheduler #(
@@ -17,19 +18,30 @@ module scheduler #(
     output logic read_valid 
 );
 
-    localparam TRIGGER_VAL = WIDTH - NUM_BANKS - BANK_DEPTH + 2;
+    localparam [$clog2(WIDTH):0] TRIGGER_VAL = WIDTH - NUM_BANKS - BANK_DEPTH + 2;
+    localparam logic [NUM_BANKS-1:0] ONE_HOT_BASE = {{NUM_BANKS-1{1'b0}}, 1'b1};
 
     logic reading;
     logic trigger_now;
     logic read_last_cycle;
     logic write_buffer_sel;
+    
     logic [$clog2(NUM_BANKS)-1:0] next_bank_select;
+    logic [$clog2(NUM_BANKS)-1:0] bank_select_next_val;
 
     assign trigger_now     = (counter == TRIGGER_VAL);
     assign read_last_cycle = reading && (bank_raddr == BANK_DEPTH - 1) && (bank_select == NUM_BANKS - 1);
     
+    always_comb begin
+        if (bank_select == NUM_BANKS - 1) begin
+            bank_select_next_val = '0;
+        end else begin
+            bank_select_next_val = bank_select + 1'b1;
+        end
+    end
+
     // Look-ahead bank logic
-    assign next_bank_select = (bank_raddr == BANK_DEPTH - 1) ? (bank_select + 1'b1) : bank_select;
+    assign next_bank_select = (bank_raddr == BANK_DEPTH - 1) ? bank_select_next_val : bank_select;
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -48,16 +60,16 @@ module scheduler #(
             read_valid      <= 1'b0;
             ping_pong_sel_r <= 1'b0;
         end else begin
-            //new frame trigger hits
+            // New frame trigger hits
             if (trigger_now) begin
                 reading         <= 1'b1;
                 read_valid      <= 1'b1;
                 bank_select     <= '0;
                 bank_raddr      <= '0;
-                bank_re         <= NUM_BANKS'(1); 
+                bank_re         <= ONE_HOT_BASE; // FIXED: Using safe 1-hot base
                 ping_pong_sel_r <= write_buffer_sel; 
             end 
-            // readout in progress
+            // Readout in progress
             else if (reading) begin
                 if (read_last_cycle) begin
                     reading         <= 1'b0;
@@ -70,13 +82,12 @@ module scheduler #(
 
                     if (bank_raddr == BANK_DEPTH - 1) begin
                         bank_raddr  <= '0;
-                        bank_select <= bank_select + 1'b1;
+                        bank_select <= bank_select_next_val;
                     end else begin
                         bank_raddr  <= bank_raddr + 1'b1;
                     end
-
-
-                    bank_re<= (NUM_BANKS'(1) << next_bank_select);
+                    
+                    bank_re <= (ONE_HOT_BASE << next_bank_select);
                 end
             end 
             else begin
